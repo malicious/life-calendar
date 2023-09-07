@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang=en">
+
+<head>
+    <meta charset="utf-8" />
+    <!-- https://waitbutwhy.com/2014/05/life-weeks.html -->
+    <title>Life in Weeks</title>
+</head>
+
+<body>
+    <svg id="week-calendar" width="960px" height="320px" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="100%" height="100%" style="fill: silver"></rect>
+        <text x="100" y="160">Enable JavaScript to render table</text>
+    </svg>
+
+    <script type="text/javascript">
+        WEEKBOX_WIDTH = 18;
+        WEEKBOX_HEIGHT = 18;
+
+        class weekBox {
+            constructor(year_offset, week_offset) {
+                this.year_offset = year_offset;
+                this.week_offset = week_offset;
+            }
+
+            lookupColor() {
+                // go to elementary school for 5.5 years
+                if (this.year_offset < 5)
+                    return "lightblue";
+                if (this.year_offset < 6 && this.week_offset < 26)
+                    return "lightblue";
+
+                return "transparent";
+            }
+
+            /**
+             * Render the box + its background, taking margins into consideration.
+             * 
+             * Box interior is 10x10 pixels, with 1x1 border and 6 pixels on each side
+             */
+            renderTo(svg_parent, margin_x, margin_y) {
+                let bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bg.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x);
+                bg.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y);
+                bg.setAttribute('width', WEEKBOX_WIDTH);
+                bg.setAttribute('height', WEEKBOX_HEIGHT);
+                bg.setAttribute('stroke-width', "0");
+                bg.setAttribute('fill', this.lookupColor());
+
+                svg_parent.appendChild(bg);
+
+
+                let box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                box.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x + 0.5 + 3);
+                box.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y + 0.5 + 3);
+                box.setAttribute('width', "10");
+                box.setAttribute('height', "10");
+                box.setAttribute('stroke', "black");
+                box.setAttribute('stroke-width', "1");
+                box.setAttribute('fill', "transparent");
+
+                svg_parent.appendChild(box);
+            }
+        }
+
+
+        /**
+         * @param years Number of year-rows to draw. Explicitly supports floats.
+         * @param start_date Start date for year 0. Used to draw leap years, among other things.
+         */
+        function drawGrid(svg_parent, years, start_date) {
+            calendar_margin_y = 36; // pixels
+            calendar_margin_x = 250; // pixels
+
+            for (let y = 0; y < Math.floor(years); y++) {
+                // TODO: make this 53 sometimes.
+                weeks_this_year = 52;
+
+                for (let week = 0; week < weeks_this_year; week++) {
+                    box = new weekBox(y, week);
+                    box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
+                }
+            }
+
+            final_year = Math.floor(years);
+            extra_weeks = (years - final_year) * 52;
+
+            for (let week = 0; week < extra_weeks; week++) {
+                box = new weekBox(final_year, week);
+                box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
+            }
+
+            s.setAttribute('width', calendar_margin_x + 53 * 18);
+            s.setAttribute('height', calendar_margin_y + Math.ceil(years) * 18);
+        }
+
+
+        /*
+         * Really, what we want is an old-style HTML table.
+         * Instead, do a lot of work to recreate something similar.
+         */
+        var s = document.getElementById("week-calendar");
+        // Clear the no-javascript placeholder content
+        s.replaceChildren();
+
+        drawGrid(s, 69.66, "2000-01-01");
+
+
+    </script>
+</body>
+
+</html>

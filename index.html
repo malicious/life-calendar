@@ -15,7 +15,11 @@
         .filled-box {
             stroke: #333;
             stroke-width: 1px;
-            fill: rgba(0, 0, 0, 0.4);
+            fill: rgba(0, 0, 0, 0.2);
+        }
+
+        g.box:hover > rect {
+            fill: red;
         }
     </style>
 </head>
@@ -91,10 +95,8 @@
              * Box interior is 10x10 pixels, with 1x1 border and 6 pixels on each side
              */
             renderTo(svg_parent, margin_x, margin_y) {
-                let tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                tooltip.innerHTML = `Box ${this.start_date}:\n\n` +
-                    `Year: ${this.year_offset}\n` +
-                    `Week: ${this.week_offset}`;
+                let box_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                box_group.classList.add("box");
 
                 let bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 bg.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x);
@@ -103,23 +105,26 @@
                 bg.setAttribute('height', WEEKBOX_HEIGHT);
                 bg.setAttribute('stroke-width', "0");
                 bg.setAttribute('fill', this.lookupColor());
-
-                bg.appendChild(tooltip);
-                svg_parent.appendChild(bg);
-
+                box_group.appendChild(bg);
 
                 let box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                box.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x + 0.5 + 3);
-                box.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y + 0.5 + 3);
+                box.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x + 4);
+                box.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y + 4);
                 box.setAttribute('width', "10");
                 box.setAttribute('height', "10");
                 if (this.start_date < new Date())
                     box.classList.add("filled-box");
                 else
                     box.classList.add("empty-box");
+                box_group.appendChild(box);
 
-                box.appendChild(tooltip.cloneNode(true));
-                svg_parent.appendChild(box);
+                let tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                tooltip.innerHTML = `Box ${this.start_date}:\n\n` +
+                    `Year: ${this.year_offset}\n` +
+                    `Week: ${this.week_offset}`;
+                box_group.appendChild(tooltip);
+
+                svg_parent.appendChild(box_group);
             }
         }
 

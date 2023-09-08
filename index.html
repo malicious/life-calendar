@@ -193,14 +193,22 @@
         /*
          * Really, what we want is an old-style HTML table.
          * Instead, do a lot of work to recreate something similar.
+         *
+         * We remove + create a new SVG element because... that's what Safari wants, sometimes.
          */
         var s = document.getElementById("week-calendar");
-        // Clear the no-javascript placeholder content
-        s.replaceChildren();
+        s.remove();
+
+        let s2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        s2.setAttribute("id", "week-calendar");
+        s2.setAttribute("width", 250 + 53 * 18);
+        s2.setAttribute("height", 36 + 70 * 18);
 
         start_date = new Date(2000, 7, 22);
-        drawGrid(s, 69.66, start_date);
-        drawAxisLabels(s);
+        drawGrid(s2, 69.66, start_date);
+        drawAxisLabels(s2);
+
+        document.body.appendChild(s2);
 
 
     </script>

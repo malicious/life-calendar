@@ -21,6 +21,25 @@
         g.box:hover>rect {
             fill: red;
         }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: black;
+            }
+
+            text {
+                fill: silver;
+            }
+
+            .empty-box {
+                stroke: silver;
+            }
+
+            .filled-box {
+                stroke: teal;
+                fill: silver;
+            }
+        }
     </style>
 </head>
 

@@ -5,6 +5,19 @@
     <meta charset="utf-8" />
     <!-- https://waitbutwhy.com/2014/05/life-weeks.html -->
     <title>Life in Weeks</title>
+    <style>
+        .empty-box {
+            stroke: black;
+            stroke-width: 1px;
+            fill: transparent;
+        }
+
+        .filled-box {
+            stroke: #333;
+            stroke-width: 1px;
+            fill: rgba(0, 0, 0, 0.4);
+        }
+    </style>
 </head>
 
 <body>
@@ -17,18 +30,57 @@
         WEEKBOX_WIDTH = 18;
         WEEKBOX_HEIGHT = 18;
 
+
+        /*
+         * Instead of pulling in moment.js, do our own calculation.
+         * Relies on the fact that ISO 8601 week number for 28-Dec gives number of weeks that we want.
+         *
+         * https://stackoverflow.com/a/74906375/2631462
+         */
+        function weeksIn(year) {
+            const magic_dec28 = new Date(Date.UTC(year, 11, 28));
+            const week_day_offset = magic_dec28.getUTCDay() || 7; // sunday needs to be a 7 for math
+            const idk_new = new Date(magic_dec28.setUTCDate(magic_dec28.getUTCDate() + 4 - week_day_offset));
+
+            const year_start = new Date(Date.UTC(idk_new.getUTCFullYear(), 0, 1)).getTime();
+            weeks = Math.ceil(((idk_new.getTime() - year_start) / 86_400_000 + 1) / 7);
+            // console.log(`Year ${year} has ${weeks} weeks`);
+            return weeks;
+        }
+
+
         class weekBox {
-            constructor(year_offset, week_offset) {
+            constructor(start_date, year_offset, week_offset) {
+                this.calendar_start_date = start_date;
                 this.year_offset = year_offset;
                 this.week_offset = week_offset;
             }
 
+            get fractional_years() {
+                return this.year_offset + this.week_offset / weeksIn(start_date.getFullYear() + this.year_offset);
+            }
+
+            get start_date() {
+                start_date = new Date(this.calendar_start_date);
+                start_date.setFullYear(start_date.getFullYear() + this.year_offset);
+                start_date.setDate(start_date.getDate() + this.week_offset * 7);
+
+                return start_date;
+            }
+
             lookupColor() {
-                // go to elementary school for 5.5 years
-                if (this.year_offset < 5)
+                if (this.fractional_years < 5.5) // early years
                     return "lightblue";
-                if (this.year_offset < 6 && this.week_offset < 26)
-                    return "lightblue";
+                if (this.fractional_years < 11.5) // elementary school
+                    return "green";
+                if (this.fractional_years < 14.5) // middle school
+                    return "lightgreen";
+                if (this.fractional_years < 18.5) // high school
+                    return "yellow";
+                if (this.fractional_years < 22.5) // college
+                    return "orange";
+                if (this.fractional_years < 62) // career
+                    return "pink";
 
                 return "transparent";
             }
@@ -39,6 +91,11 @@
              * Box interior is 10x10 pixels, with 1x1 border and 6 pixels on each side
              */
             renderTo(svg_parent, margin_x, margin_y) {
+                let tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                tooltip.innerHTML = `Box ${this.start_date}:\n\n` +
+                    `Year: ${this.year_offset}\n` +
+                    `Week: ${this.week_offset}`;
+
                 let bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 bg.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x);
                 bg.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y);
@@ -47,6 +104,7 @@
                 bg.setAttribute('stroke-width', "0");
                 bg.setAttribute('fill', this.lookupColor());
 
+                bg.appendChild(tooltip);
                 svg_parent.appendChild(bg);
 
 
@@ -55,10 +113,12 @@
                 box.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y + 0.5 + 3);
                 box.setAttribute('width', "10");
                 box.setAttribute('height', "10");
-                box.setAttribute('stroke', "black");
-                box.setAttribute('stroke-width', "1");
-                box.setAttribute('fill', "transparent");
+                if (this.start_date < new Date())
+                    box.classList.add("filled-box");
+                else
+                    box.classList.add("empty-box");
 
+                box.appendChild(tooltip.cloneNode(true));
                 svg_parent.appendChild(box);
             }
         }
@@ -73,11 +133,10 @@
             calendar_margin_x = 250; // pixels
 
             for (let y = 0; y < Math.floor(years); y++) {
-                // TODO: make this 53 sometimes.
-                weeks_this_year = 52;
+                weeks_this_year = weeksIn(start_date.getFullYear() + y);
 
                 for (let week = 0; week < weeks_this_year; week++) {
-                    box = new weekBox(y, week);
+                    box = new weekBox(start_date, y, week);
                     box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
                 }
             }
@@ -86,12 +145,43 @@
             extra_weeks = (years - final_year) * 52;
 
             for (let week = 0; week < extra_weeks; week++) {
-                box = new weekBox(final_year, week);
+                box = new weekBox(start_date, final_year, week);
                 box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
             }
 
             s.setAttribute('width', calendar_margin_x + 53 * 18);
             s.setAttribute('height', calendar_margin_y + Math.ceil(years) * 18);
+        }
+
+
+        function drawAxisLabels(svg_parent) {
+            calendar_margin_y = 36; // pixels
+            calendar_margin_x = 250; // pixels
+
+            function make_label(x_pos, y_pos, text) {
+                let label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x_pos);
+                label.setAttribute('y', y_pos);
+                label.innerHTML = text;
+
+                svg_parent.appendChild(label);
+            }
+
+            for (let week = 5; week < 52; week += 5) {
+                let week_label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                week_label.setAttribute('x', (week - 1) * WEEKBOX_WIDTH + calendar_margin_x);
+                week_label.setAttribute('y', calendar_margin_y - 8);
+                week_label.innerHTML = `${week}`;
+
+                svg_parent.appendChild(week_label);
+            }
+
+            for (let year = 5; year < 200; year += 5) {
+                make_label(
+                    calendar_margin_x - 48,
+                    year * WEEKBOX_HEIGHT + calendar_margin_y,
+                    `${year} yo`);
+            }
         }
 
 
@@ -103,7 +193,9 @@
         // Clear the no-javascript placeholder content
         s.replaceChildren();
 
-        drawGrid(s, 69.66, "2000-01-01");
+        start_date = new Date(2000, 7, 22);
+        drawGrid(s, 69.66, start_date);
+        drawAxisLabels(s);
 
 
     </script>

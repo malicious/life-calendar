@@ -59,6 +59,8 @@
         WEEKBOX_WIDTH = 18;
         WEEKBOX_HEIGHT = 18;
 
+        DRAW_DATE_REFERENCE = new Date();
+
 
         /*
          * Instead of pulling in moment.js, do our own calculation.
@@ -77,10 +79,15 @@
             return weeks;
         }
 
+        // TODO: Do some kind of interpolation with an actuarial table
+        function yearsExpected(birth_date, current_date) {
+            return 69.66;
+        }
+
 
         class weekBox {
-            constructor(start_date, year_offset, week_offset) {
-                this.calendar_start_date = start_date;
+            constructor(calendar_start_date, year_offset, week_offset) {
+                this.calendar_start_date = calendar_start_date;
                 this.year_offset = year_offset;
                 this.week_offset = week_offset;
             }
@@ -97,6 +104,7 @@
                 return start_date;
             }
 
+            // TODO: Move this to CSS classes for maybe-better performance
             lookupColor() {
                 if (this.fractional_years < 5.5) // early years
                     return "rgba(173, 216, 230, 0.5)";
@@ -112,6 +120,13 @@
                     return "rgba(0, 128, 128, 0.4)";
 
                 return "transparent";
+            }
+
+            lookupBoxClass() {
+                if (this.start_date < DRAW_DATE_REFERENCE)
+                    return "filled-box";
+                else
+                    return "empty-box";
             }
 
             /**
@@ -136,10 +151,7 @@
                 box.setAttribute('y', this.year_offset * WEEKBOX_HEIGHT + margin_y + 4);
                 box.setAttribute('width', "10");
                 box.setAttribute('height', "10");
-                if (this.start_date < new Date())
-                    box.classList.add("filled-box");
-                else
-                    box.classList.add("empty-box");
+                box.classList.add(this.lookupBoxClass());
                 box_group.appendChild(box);
 
                 let tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
@@ -238,20 +250,19 @@
          *
          * We remove + create a new SVG element because... that's what Safari wants, sometimes.
          */
-        var s = document.getElementById("week-calendar");
-        s.remove();
+        var s0 = document.getElementById("week-calendar");
+        s0.remove();
 
-        let s2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        s2.setAttribute("id", "week-calendar");
-        s2.setAttribute("width", 250 + 53 * WEEKBOX_WIDTH);
-        s2.setAttribute("height", 36 + 70 * WEEKBOX_HEIGHT);
+        let s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        s.setAttribute("id", "week-calendar");
+        s.setAttribute("width", 250 + 53 * WEEKBOX_WIDTH);
+        s.setAttribute("height", 36 + 70 * WEEKBOX_HEIGHT);
 
         start_date = new Date(Date.UTC(2000, 7, 22));
-        drawGrid(s2, 69.66, start_date);
-        drawAxisLabels(s2);
+        drawGrid(s, yearsExpected(start_date, DRAW_DATE_REFERENCE), start_date);
+        drawAxisLabels(s);
 
-        document.body.appendChild(s2);
-
+        document.body.appendChild(s);
 
     </script>
 </body>

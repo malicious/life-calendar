@@ -58,6 +58,8 @@
     <script type="text/javascript">
         WEEKBOX_WIDTH = 18;
         WEEKBOX_HEIGHT = 18;
+        CALENDAR_MARGIN_LEFT = 250;
+        CALENDAR_MARGIN_TOP = 36;
 
         DRAW_DATE_REFERENCE = new Date();
 
@@ -170,9 +172,6 @@
          * @param start_date Start date for year 0. Used to draw leap years, among other things.
          */
         function drawGrid(svg_parent, years, start_date) {
-            calendar_margin_y = 36; // pixels
-            calendar_margin_x = 250; // pixels
-
             for (let y = 0; y < Math.floor(years); y++) {
                 weeks_this_year = weeksIn(start_date.getFullYear() + y);
 
@@ -184,7 +183,7 @@
                 for (let week = 0; week < weeks_this_year; week++) {
                     box = new weekBox(start_date, y, week);
 
-                    box_group = box.renderNodes(calendar_margin_x, calendar_margin_y);
+                    box_group = box.renderNodes(CALENDAR_MARGIN_LEFT, CALENDAR_MARGIN_TOP);
                     box_group.classList.add("box");
                     box_group.id = `week-${y}-${week}`;
                     year_group.appendChild(box_group);
@@ -202,21 +201,18 @@
             for (let week = 0; week < extra_weeks; week++) {
                 box = new weekBox(start_date, final_year, week);
 
-                box_group = box.renderNodes(calendar_margin_x, calendar_margin_y);
+                box_group = box.renderNodes(CALENDAR_MARGIN_LEFT, CALENDAR_MARGIN_TOP);
                 box_group.classList.add("box");
                 box_group.id = `week-${final_year}-${week}`;
                 year_group.appendChild(box_group);
             }
 
-            s.setAttribute('width', calendar_margin_x + 53 * 18);
-            s.setAttribute('height', calendar_margin_y + Math.ceil(years) * 18);
+            s.setAttribute('width', CALENDAR_MARGIN_LEFT + 53 * 18);
+            s.setAttribute('height', CALENDAR_MARGIN_TOP + Math.ceil(years) * 18);
         }
 
 
         function drawAxisLabels(svg_parent) {
-            calendar_margin_y = 36; // pixels
-            calendar_margin_x = 250; // pixels
-
             function make_label(x_pos, y_pos, text) {
                 let label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 label.setAttribute('x', x_pos);
@@ -228,8 +224,8 @@
 
             for (let week = 5; week < 52; week += 5) {
                 let week_label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                week_label.setAttribute('x', (week - 1) * WEEKBOX_WIDTH + calendar_margin_x);
-                week_label.setAttribute('y', calendar_margin_y - 8);
+                week_label.setAttribute('x', (week - 1) * WEEKBOX_WIDTH + CALENDAR_MARGIN_LEFT);
+                week_label.setAttribute('y', CALENDAR_MARGIN_TOP - 8);
                 week_label.innerHTML = `${week}`;
 
                 svg_parent.appendChild(week_label);
@@ -237,8 +233,8 @@
 
             for (let year = 5; year < 200; year += 5) {
                 make_label(
-                    calendar_margin_x - 48,
-                    year * WEEKBOX_HEIGHT + calendar_margin_y + WEEKBOX_HEIGHT,
+                    CALENDAR_MARGIN_LEFT - 48,
+                    year * WEEKBOX_HEIGHT + CALENDAR_MARGIN_TOP + WEEKBOX_HEIGHT,
                     `${year} yo`);
             }
         }
@@ -253,13 +249,15 @@
         var s0 = document.getElementById("week-calendar");
         s0.remove();
 
+        start_date = new Date(Date.UTC(2000, 7, 22));
+        years_expected = yearsExpected(start_date, DRAW_DATE_REFERENCE);
+
         let s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         s.setAttribute("id", "week-calendar");
-        s.setAttribute("width", 250 + 53 * WEEKBOX_WIDTH);
-        s.setAttribute("height", 36 + 70 * WEEKBOX_HEIGHT);
+        s.setAttribute("width", CALENDAR_MARGIN_LEFT + 53 * WEEKBOX_WIDTH);
+        s.setAttribute("height", CALENDAR_MARGIN_TOP + (years_expected+2) * WEEKBOX_HEIGHT);
 
-        start_date = new Date(Date.UTC(2000, 7, 22));
-        drawGrid(s, yearsExpected(start_date, DRAW_DATE_REFERENCE), start_date);
+        drawGrid(s, years_expected, start_date);
         drawAxisLabels(s);
 
         document.body.appendChild(s);

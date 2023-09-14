@@ -113,9 +113,8 @@
              * 
              * Box interior is 10x10 pixels, with 1x1 border and 6 pixels on each side
              */
-            renderTo(svg_parent, margin_x, margin_y) {
+            renderNodes(margin_x, margin_y) {
                 let box_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                box_group.classList.add("box");
 
                 let bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 bg.setAttribute('x', this.week_offset * WEEKBOX_WIDTH + margin_x);
@@ -143,7 +142,7 @@
                     `Week: ${this.week_offset}`;
                 box_group.appendChild(tooltip);
 
-                svg_parent.appendChild(box_group);
+                return box_group;
             }
         }
 
@@ -159,18 +158,36 @@
             for (let y = 0; y < Math.floor(years); y++) {
                 weeks_this_year = weeksIn(start_date.getFullYear() + y);
 
+                let year_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                year_group.classList.add("row");
+                year_group.id = `year-${y}`;
+                svg_parent.appendChild(year_group);
+
                 for (let week = 0; week < weeks_this_year; week++) {
                     box = new weekBox(start_date, y, week);
-                    box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
+
+                    box_group = box.renderNodes(calendar_margin_x, calendar_margin_y);
+                    box_group.classList.add("box");
+                    box_group.id = `week-${y}-${week}`;
+                    year_group.appendChild(box_group);
                 }
             }
 
             final_year = Math.floor(years);
             extra_weeks = (years - final_year) * 52;
 
+            let year_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            year_group.classList.add("row");
+            year_group.id = `year-${final_year}`;
+            svg_parent.appendChild(year_group);
+
             for (let week = 0; week < extra_weeks; week++) {
                 box = new weekBox(start_date, final_year, week);
-                box.renderTo(svg_parent, calendar_margin_x, calendar_margin_y);
+
+                box_group = box.renderNodes(calendar_margin_x, calendar_margin_y);
+                box_group.classList.add("box");
+                box_group.id = `week-${final_year}-${week}`;
+                year_group.appendChild(box_group);
             }
 
             s.setAttribute('width', calendar_margin_x + 53 * 18);

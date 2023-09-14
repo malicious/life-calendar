@@ -6,6 +6,11 @@
     <!-- https://waitbutwhy.com/2014/05/life-weeks.html -->
     <title>Life in Weeks</title>
     <style>
+        body {
+            font-family: 'Helvetica Neue', 'FrutigerLTStd-UltraBlack', 'Myriad Pro Light', sans-serif;
+            font-weight: 200;
+        }
+
         .empty-box {
             stroke: #eee;
             stroke-width: 1px;
@@ -19,7 +24,7 @@
         }
 
         g.box:hover>rect {
-            fill: red;
+            fill: #db3d2a;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -220,7 +225,7 @@
             for (let year = 5; year < 200; year += 5) {
                 make_label(
                     calendar_margin_x - 48,
-                    year * WEEKBOX_HEIGHT + calendar_margin_y,
+                    year * WEEKBOX_HEIGHT + calendar_margin_y + WEEKBOX_HEIGHT,
                     `${year} yo`);
             }
         }
@@ -237,8 +242,8 @@
 
         let s2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         s2.setAttribute("id", "week-calendar");
-        s2.setAttribute("width", 250 + 53 * 18);
-        s2.setAttribute("height", 36 + 70 * 18);
+        s2.setAttribute("width", 250 + 53 * WEEKBOX_WIDTH);
+        s2.setAttribute("height", 36 + 70 * WEEKBOX_HEIGHT);
 
         start_date = new Date(Date.UTC(2000, 7, 22));
         drawGrid(s2, 69.66, start_date);

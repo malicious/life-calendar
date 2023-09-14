@@ -7,15 +7,15 @@
     <title>Life in Weeks</title>
     <style>
         .empty-box {
-            stroke: black;
+            stroke: #eee;
             stroke-width: 1px;
             fill: transparent;
         }
 
         .filled-box {
-            stroke: #333;
-            stroke-width: 1px;
-            fill: rgba(0, 0, 0, 0.2);
+            stroke: #777;
+            stroke-width: 2px;
+            fill: transparent;
         }
 
         g.box:hover>rect {
@@ -93,17 +93,17 @@
 
             lookupColor() {
                 if (this.fractional_years < 5.5) // early years
-                    return "lightblue";
+                    return "rgba(173, 216, 230, 0.5)";
                 if (this.fractional_years < 11.5) // elementary school
-                    return "green";
+                    return "rgba(0, 128, 0, 0.5)";
                 if (this.fractional_years < 14.5) // middle school
-                    return "lightgreen";
+                    return "rgba(255, 255, 0, 0.5)";
                 if (this.fractional_years < 18.5) // high school
-                    return "yellow";
+                    return "rgba(255, 165, 0, 0.5)";
                 if (this.fractional_years < 22.5) // college
-                    return "orange";
+                    return "rgba(255, 192, 203, 0.5)";
                 if (this.fractional_years < 62) // career
-                    return "pink";
+                    return "rgba(0, 128, 128, 0.4)";
 
                 return "transparent";
             }

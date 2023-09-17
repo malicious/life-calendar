@@ -81,9 +81,41 @@
             return weeks;
         }
 
-        // TODO: Do some kind of interpolation with an actuarial table
+        /*
+         * Linear interpolation of actuarial data from
+         * https://www.ssa.gov/oact/STATS/table4c6.html
+         */
         function yearsExpected(birth_date, current_date) {
-            return 69.66;
+            expectancy_table = {
+                 0: 74.12,
+                10: 64.67,
+                20: 54.97,
+                30: 45.86,
+                35: 41.39,
+                36: 40.50,
+                37: 39.62,
+                50: 28.33,
+                60: 20.47,
+                70: 13.59,
+                80:  7.74,
+                90:  3.72,
+                99:  2.04,
+            }
+
+            let msec_per_day = 24 * 60 * 60 * 1000;
+            years_delta = (current_date - birth_date) / msec_per_day / 365.24;
+
+            less_entry = Object.keys(expectancy_table).filter(elem => elem <  years_delta).at(-1);
+            next_entry = Object.keys(expectancy_table).filter(elem => elem >= years_delta)[0];
+            console.log(`Interpolating life expectancy between ${less_entry} and ${next_entry}`);
+
+            entry_distance = next_entry - less_entry
+            time_left =
+                expectancy_table[less_entry] * (years_delta - less_entry) / entry_distance +
+                expectancy_table[next_entry] * (next_entry - years_delta) / entry_distance;
+
+            console.log(`Estimating that ${years_delta.toFixed(3)} years of age => ${time_left.toFixed(3)}`);
+            return years_delta + time_left;
         }
 
 

@@ -55,13 +55,19 @@
         <text x="100" y="160">Enable JavaScript to render table</text>
     </svg>
 
-    <script type="text/javascript">
+    <script src="config.js"></script>
+
+    <script>
         WEEKBOX_WIDTH = 18;
         WEEKBOX_HEIGHT = 18;
         CALENDAR_MARGIN_LEFT = 250;
         CALENDAR_MARGIN_TOP = 36;
 
         DRAW_DATE_REFERENCE = new Date();
+
+        // Early on, check that config.js loaded.
+        // Otherwise, the implementer has to either fix it, or render this page statically.
+        console.log(`Using calendar named ${targetCalendar.get_name()}`);
 
 
         /*
@@ -218,6 +224,9 @@
 
             let msec_per_day = 24 * 60 * 60 * 1000;
             years_delta = (current_date - birth_date) / msec_per_day / 365.24;
+            // For anyone whose lifespan exceeds the table span, just set it to +0.5 years for optimism.
+            if (years_delta >= 119)
+                return years_delta + 0.53;
 
             less_entry = Object.keys(expectancy_table).filter(elem => elem <  years_delta).at(-1);
             next_entry = Object.keys(expectancy_table).filter(elem => elem >= years_delta)[0];
@@ -252,29 +261,12 @@
                 return start_date;
             }
 
-            // TODO: Move this to CSS classes for maybe-better performance
             lookupColor() {
-                if (this.fractional_years < 5.5) // early years
-                    return "rgba(173, 216, 230, 0.5)";
-                if (this.fractional_years < 11.5) // elementary school
-                    return "rgba(0, 128, 0, 0.5)";
-                if (this.fractional_years < 14.5) // middle school
-                    return "rgba(255, 255, 0, 0.5)";
-                if (this.fractional_years < 18.5) // high school
-                    return "rgba(255, 165, 0, 0.5)";
-                if (this.fractional_years < 22.5) // college
-                    return "rgba(255, 192, 203, 0.5)";
-                if (this.fractional_years < 62) // career
-                    return "rgba(0, 128, 128, 0.4)";
-
-                return "transparent";
+                return targetCalendar.lookup_css_style(this);
             }
 
             lookupBoxClass() {
-                if (this.start_date < DRAW_DATE_REFERENCE)
-                    return "filled-box";
-                else
-                    return "empty-box";
+                return targetCalendar.lookup_css_classes(this, DRAW_DATE_REFERENCE);
             }
 
             /**
@@ -395,8 +387,12 @@
         var s0 = document.getElementById("week-calendar");
         s0.remove();
 
-        start_date = new Date(Date.UTC(2000, 7, 22));
-        years_expected = yearsExpected(start_date, DRAW_DATE_REFERENCE);
+        start_date = targetCalendar.start_date();
+        end_date = DRAW_DATE_REFERENCE;
+        if (typeof targetCalendar.end_date === 'function')
+            end_date = targetCalendar.end_date()
+
+        years_expected = yearsExpected(start_date, end_date);
 
         let s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         s.setAttribute("id", "week-calendar");
